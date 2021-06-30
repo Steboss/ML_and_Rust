@@ -1,0 +1,15 @@
+[package]
+name = "smartcore_linear_regression"
+version = "0.1.0"
+authors = ["Steboss89"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+polars = "0.14.2"
+polars-core = {version = "0.14.2", features=["ndarray"]}
+arrow = "4.3.0"
+smartcore = "0.2.0"
+serde = "1.0.126"
+serde_derive = "1.0.126"
