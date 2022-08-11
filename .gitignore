@@ -2,4 +2,6 @@ tutorial*/*/*/target
 tutorial*/*/*/Cargo.lock
 tutorial3_not_to_be_up/
 tutorial_2_not_to_be_up/
-tutoral3/simple_neural_networks/data
+tutoral_3/simple_neural_networks/data
+tutorial_3/simple_neural_networks/data
+tutorial_3/simple_neural_networks/target
