@@ -91,8 +91,6 @@ fn main()-> Result<(), Box<dyn Error>> {
         .finalize();
     
     // set up a weight and bias tensor
-    let mut ws = Tensor::zeros(&[(HEIGHT*WIDTH) as i64, LABELS], kind::FLOAT_CPU).set_requires_grad(true);
-    let mut bs = Tensor::zeros(&[LABELS], kind::FLOAT_CPU).set_requires_grad(true);
     let train_data = image_to_tensor(trn_img, TRAIN_SIZE, HEIGHT, WIDTH);
     let train_lbl = labels_to_tensor(trn_lbl, TRAIN_SIZE, 1);
     let test_data = image_to_tensor(tst_img, TEST_SIZE, HEIGHT, WIDTH); 
