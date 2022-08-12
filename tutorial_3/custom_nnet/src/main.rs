@@ -104,7 +104,6 @@ fn main()-> Result<(), Box<dyn Error>> {
     let net = net(&vs.root());
     // set up optimizer 
     let mut opt = nn::Adam::default().build(&vs, 1e-4)?;
-    let n_it = (TRAIN_SIZE as i64)/BATCH_SIZE; // already ceiled
     println!("Number of iteration with given batch size: {:?}", n_it);
     // run epochs 
     for epoch in 1..N_EPOCHS {
