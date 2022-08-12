@@ -5,3 +5,7 @@ tutorial_2_not_to_be_up/
 tutoral_3/simple_neural_networks/data
 tutorial_3/simple_neural_networks/data
 tutorial_3/simple_neural_networks/target
+tutorial_3/conv_nnet/target
+tutorial_3/conv_nnet/data
+tutorial_3/custom_nnet/target
+tutorial_3/custom_nnet/data
