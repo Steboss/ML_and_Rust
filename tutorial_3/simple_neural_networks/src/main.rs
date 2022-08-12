@@ -12,9 +12,9 @@ const LABELS: i64 = 10; // number of distinct labels
 const HEIGHT: usize = 28; 
 const WIDTH: usize = 28;
 
-const TRAIN_SIZE: usize = 1000;
-const VAL_SIZE: usize = 200;
-const TEST_SIZE: usize =200;
+const TRAIN_SIZE: usize = 50000;
+const VAL_SIZE: usize = 10000;
+const TEST_SIZE: usize =10000;
 
 const N_EPOCHS: i64 = 200;
 

@@ -4,58 +4,31 @@
 use std::result::Result;
 use std::error::Error;
 use mnist::*;
-use tch::{kind, Kind, Tensor, nn, nn::ModuleT, nn::OptimizerConfig, Device};
+use tch::{kind, Kind, Tensor, nn, nn::Module, nn::OptimizerConfig, Device};
 use ndarray::{Array3, Array2};
 
 
 const LABELS: i64 = 10; // number of distinct labels
 const HEIGHT: usize = 28; 
 const WIDTH: usize = 28;
+const IMAGE_DIM: i64 = 784;
+const HIDDEN_NODES: i64 = 128;
 
-const TRAIN_SIZE: usize = 10000;
-const VAL_SIZE: usize = 1000;
-const TEST_SIZE: usize =1000;
+const TRAIN_SIZE: usize = 50000;
+const VAL_SIZE: usize = 10000;
+const TEST_SIZE: usize =10000;
 
-const N_EPOCHS: i64 = 50 ;
+const N_EPOCHS: i64 = 200;
 
 const THRES: f64 = 0.001;
 
 const BATCH_SIZE: i64 = 256;
 
-
-#[derive(Debug)]
-struct Net {
-    conv1: nn::Conv2D,
-    conv2: nn::Conv2D,
-    fc1: nn::Linear,
-    fc2: nn::Linear,
-}
-
-impl Net {
-    fn new(vs: &nn::Path) -> Net {
-        // stride -- padding -- dilation
-        let conv1 = nn::conv2d(vs, 1, 32, 5, Default::default());
-        let conv2 = nn::conv2d(vs, 32, 64, 5, Default::default());
-        let fc1 = nn::linear(vs, 1024, 1024, Default::default());
-        let fc2 = nn::linear(vs, 1024, 10, Default::default());
-        Net { conv1, conv2, fc1, fc2 }
-    }
-}
-
-// forward step
-impl nn::ModuleT for Net {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.view([-1, 1, 28, 28])
-            .apply(&self.conv1)
-            .max_pool2d_default(2)
-            .apply(&self.conv2)
-            .max_pool2d_default(2)
-            .view([-1, 1024])
-            .apply(&self.fc1)
-            .relu()
-            .dropout(0.5, train)
-            .apply(&self.fc2)
-    }
+fn net(vs: &nn::Path) -> impl Module{
+    nn::seq()
+    .add(nn::linear(vs/"layer1", IMAGE_DIM, HIDDEN_NODES, Default::default() ))
+    .add_fn(|xs| xs.relu())
+    .add(nn::linear(vs, HIDDEN_NODES, LABELS, Default::default()))
 }
 
 
@@ -129,33 +102,30 @@ fn main()-> Result<(), Box<dyn Error>> {
 
     // set up variable store to check if cuda is available 
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    // set up the Conv net 
-    let net = Net::new(&vs.root());
+    // set up the seq net 
+    let net = net(&vs.root());
     // set up optimizer 
     let mut opt = nn::Adam::default().build(&vs, 1e-4)?;
     let n_it = (TRAIN_SIZE as i64)/BATCH_SIZE; // already ceiled
     println!("Number of iteration with given batch size: {:?}", n_it);
     // run epochs 
-    for epoch in 1..100 {
-        // generate random idxs for batch size 
-        // run all the images divided in batches  -> for loop
-        for i in 1..n_it {
-            let batch_idxs = generate_random_index(TRAIN_SIZE as i64, BATCH_SIZE); 
-            let batch_images = train_data.index_select(0, &batch_idxs).to_device(vs.device()).to_kind(Kind::Float); 
-            let batch_lbls = train_lbl.index_select(0, &batch_idxs).to_device(vs.device()).to_kind(Kind::Int64);
-            // compute the loss 
-            let loss = net.forward_t(&batch_images, true).cross_entropy_for_logits(&batch_lbls);
-            opt.backward_step(&loss);
-        }
-        // compute accuracy 
-        let val_accuracy =
-            net.batch_accuracy_for_logits(&val_data, &val_lbl, vs.device(), 1024);
-        println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * val_accuracy,);
+    for epoch in 1..N_EPOCHS {
+        let loss = net.forward(&train_data).cross_entropy_for_logits(&train_lbl);
+        // backward step 
+        opt.backward_step(&loss);
+        //accuracy on test
+        let val_accuracy = net.forward(&val_data).accuracy_for_logits(&val_lbl);
+        println!(
+            "epoch: {:4} train loss: {:8.5} val acc: {:5.2}%",
+            epoch,
+            f64::from(&loss),
+            100. * f64::from(&val_accuracy),
+        );
     }
 
-    // test accuracy 
-    let test_accuracy = net.batch_accuracy_for_logits(&test_data, &test_lbl, vs.device(), 1024);
-    println!("Final test accuracy {:5.2}%", 100.*test_accuracy);
+    // final test 
+    let test_accuracy = net.forward(&test_data).accuracy_for_logits(&test_lbl);
+    println!("Final test accuracy {:5.2}%", 100.*f64::from(&test_accuracy));
 
     Ok(())
 }
