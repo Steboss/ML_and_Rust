@@ -16,7 +16,7 @@ const TRAIN_SIZE: usize = 10000;
 const VAL_SIZE: usize = 1000;
 const TEST_SIZE: usize =1000;
 
-const N_EPOCHS: i64 = 50 ;
+const N_EPOCHS: i64 = 50;
 
 const THRES: f64 = 0.001;
 
@@ -136,7 +136,7 @@ fn main()-> Result<(), Box<dyn Error>> {
     let n_it = (TRAIN_SIZE as i64)/BATCH_SIZE; // already ceiled
     println!("Number of iteration with given batch size: {:?}", n_it);
     // run epochs 
-    for epoch in 1..100 {
+    for epoch in 1..N_EPOCHS {
         // generate random idxs for batch size 
         // run all the images divided in batches  -> for loop
         for i in 1..n_it {
